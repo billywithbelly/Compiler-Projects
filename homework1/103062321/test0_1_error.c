@@ -6,7 +6,7 @@ int main () {
         for (i = 0; i < 2; i++) {
                 b[i] = i;
         }
-        printf("b[1]=%d\n", b[1]);
+        printf(”b[1]=%d\n“, b[1]);
         if (b[0] > 1){ 
                 a = a * 1.23e-1; 
         }  

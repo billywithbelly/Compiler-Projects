@@ -1,4 +1,5 @@
 //This test case is only for homework explanation
+#pragma token off
 int main () {
         double a = 6.0;
         int i;

@@ -1,8 +1,7 @@
 /* 
     argument :
-    ./scanner < test0_1.c 1>output.txt 2>error.txt
+    ./scanner <test0_1.c 1>output.txt 2>error.txt
 */
-
 
 %{
     #include <stdio.h>
@@ -13,7 +12,6 @@
     int id_line;
     int declare_flag = 0;
     char parsed[1024];
-    int startLine = 1;
 
     int source_on = 1;
     int token_on = 1;
@@ -23,13 +21,12 @@
 
 PUNC            ":"|","|"."|"["|"]"|"("|")"|"{"|"}"|";"
 STR             \".*\"
-CHAR            \'.\'
-SPACE           [ \t]
-FLOAT           [0-9]+.[0-9]+
+CHAR            \'.*\'
+SPACE           [ \r\t\f\v]
 DIGIT           [0-9]
 ID              [a-zA-Z_][a-zA-Z0-9_]*
-OP              "+"|"-"|"*"|"/"|"<"|">"|"="|"<="|">="|"=="|"%"|"++"|"--"|"!="|"&&"|"||"|"!"
-SCI             [0-9]+.[0-9]*[a-zA-Z_][\+\-]*[0-9]*
+OP              "+"|"-"|"*"|"/"|"%"|"++"|"--"|"<"|"<="|">"|">"|">="|"=="|"!="|"="|"&&"|"||"|"!"|"*"|"&"
+KEY             "void"|"int"|"double"|"bool"|"char"|"null"|"for"|"while"|"do"|"if"|"else"|"switch"|"return"|"break"|"continue"|"const"|"true"|"false"|"struct"|"case"|"default"|"fopen"|"fread"|"freopen"|"remove"|"rename"|"fprintf"|"printf"|"fscanf"|"scanf"|"getc"|"getchar"|"gets"|"putc"|"putchar"|"puts"
 
 %x              COMMENT
 %x              HEADER
@@ -65,39 +62,68 @@ SCI             [0-9]+.[0-9]*[a-zA-Z_][\+\-]*[0-9]*
 
 {PUNC}  {
     strcat (parsed, yytext);   
-    printf("#punc:%s\n", yytext);   
+    if (token_on)
+        printf("#punc:%s\n", yytext);   
 }
 
 "#" BEGIN(HEADER);
 
 {STR}   {
     char tmpt[1024];
-    int length = strlen(yytext);
-    int j;
-    for (j=1; j<length-1; j++) {
-        tmpt[j-1] = yytext[j];
-    }
-    strcat (parsed, yytext);
-    if (token_on) {
+    int i;
+    for (i=1; i<yyleng-1; i++)
+        tmpt[i-1] = yytext[i];
+    tmpt[yyleng-2] = '\0';
+    if(token_on)
         printf("#string:%s\n", tmpt);
-    }
+    strcat (parsed, yytext);
 }
 
 {CHAR}  {
+    if (yyleng > 4) {
+        printf("error in char\n");
+        //fprintf(stderr, "Error at line %d: %s\n", lineCount, yytext); exit(1);
+        exit (1);
+    }
+
     strcat (parsed, yytext);
     if (token_on) {
         printf("#char:%s\n", yytext);
     }
 }
 
-"if"|"for"|"while"|"else"   {
+{KEY}   {
+    if (yytext[0] == 'd') {
+        doubleOrFloat = 1;
+    } else if (yytext[0] == 'f') {
+        doubleOrFloat = 2;
+    } else {
+        doubleOrFloat = 0;
+    }
+
     strcat (parsed, yytext);
     if (token_on) {
         printf("#key:%s\n", yytext);
     }
 }
 
-{FLOAT} {
+{DIGIT}*"."{DIGIT}+ {
+    strcat (parsed, yytext);   
+    if (doubleOrFloat == 1) {
+        if (token_on) {
+            printf("#double:%s\n", yytext);
+        }
+        doubleOrFloat = 0;
+    } else if (doubleOrFloat == 2) {
+        if (token_on) {
+            printf("#float:%s\n", yytext);
+        }
+        doubleOrFloat = 0;
+    }
+    doubleOrFloat = 0;
+}
+
+{DIGIT}+"."{DIGIT}* {
     strcat (parsed, yytext);   
     if (doubleOrFloat == 1) {
         if (token_on) {
@@ -114,6 +140,11 @@ SCI             [0-9]+.[0-9]*[a-zA-Z_][\+\-]*[0-9]*
 }
 
 {DIGIT}+    {
+    if (yytext[0] == '0' && yyleng != 1) {
+        printf("Error at line %d: 0\n", lineCount);
+        //fprintf(stderr, "Error at line %d: %s\n", lineCount, yytext); exit(1);
+        exit(1);
+    }
     strcat (parsed, yytext);                        
     if (token_on) {
         printf("#integer:%s\n", yytext);
@@ -133,39 +164,30 @@ SCI             [0-9]+.[0-9]*[a-zA-Z_][\+\-]*[0-9]*
 }
 
 "/*"    {
-    strcat (parsed, yytext);
-    printf("#%dcomment:/*\n", lineCount);
+    int length = strlen (yytext);
+    int i;
+    int start=0;
+    char tmpt[1024];
+    /*
+    for (i=0; i<length-1; i++)
+            if (yytext[i] == '/')
+                if (yytext[i+1] =='*') {
+                    start = i+1;
+                }
+    for (i=0;i<=start; i++)
+        tmpt[i] = yytext[i];
+    strcat (parsed, tmpt);
+    memset (tmpt, '\0', strlen(tmpt));
+    for (i=start+1; i<length; i++)
+        tmpt[i-start-1] = yytext[i];
+    memset (yytext, '\0', strlen(yytext));
+    for (i=0; i<strlen(tmpt); i++)
+        yytext[i] = tmpt[i];
+
     BEGIN(COMMENT);
-}
-
-"int"|"double"|"char"|"float"   {
-    if (yytext[0] == 'd') {
-        doubleOrFloat = 1;
-    } else if (yytext[0] == 'f') {
-        doubleOrFloat = 2;
-    } else {
-        doubleOrFloat = 0;
-    }
-
+    */
     strcat (parsed, yytext);
-    if (token_on) {
-        printf("#key:%s\n", yytext);
-    }
-    declare_flag = 1;
-}
-
-return  {
-    strcat (parsed, yytext);
-    if (token_on) {
-        printf("#key:%s\n", yytext);
-    }
-}
-
-printf  {
-    strcat (parsed, yytext);
-    if (token_on) {
-        printf("#key:%s\n", yytext);
-    }
+    BEGIN(COMMENT);
 }
 
 {ID}    { 
@@ -178,27 +200,10 @@ printf  {
     //BEGIN(FUNC_OR_VAR);
 }
 
-{SCI}   {
-    int length = strlen (yytext);
-    int i;
-    for (i=0; i<length; i++) {
-        if (yytext[i] >= 'a' && yytext[i] <= 'z') {
-            if (yytext[i] != 'e') {
-                printf ("Error in line %d, found id after integer\n", lineCount);
-                exit (1);
-            }
-        }
-        if (yytext[i] >= 'A' && yytext[i] <= 'Z') {
-            if (yytext[i] != 'E') {
-                printf ("Error in line %d, found id after integer\n", lineCount);
-                exit (1);
-            }
-        }
-    }
+(([0-9]+)|([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+))[e|E][+-]?[0-9]+/[^\.0-9a-zA-Z_] {
     strcat (parsed, yytext);
-    if (token_on) {
+    if(token_on)
         printf("#sci:%s\n", yytext);
-    }
 }
 
 \n  {
@@ -207,7 +212,6 @@ printf  {
         printf("%d:%s\n", lineCount, parsed);
     }
     memset(parsed, '\0', strlen(parsed) );
-    startLine = 1;
     lineCount++; 
 } 
 
@@ -219,34 +223,29 @@ printf  {
 
 <COMMENT>{
      "*/"      {
-        strcat (parsed, yytext);
-        if (source_on) {
-            printf("#%dcomment:*/\n", lineCount);
-        }
         BEGIN(0);
+        strcat (parsed,yytext);
      }
-     {SPACE}   //ignore
-     [^\n]+   {
-        strcat (parsed, yytext);
+     \n        {  
         if (source_on) {
-            printf ("#%dcomment:%s\n",lineCount, yytext);
+            printf ("%d:%s\n",lineCount, parsed);
         }
-    }
-    \n        {
-        strcat (parsed, yytext);
+        memset(parsed, '\0', strlen(parsed) );
         lineCount++;
     }
+    [^\n]   {
+        strcat (parsed, yytext);
+    }
 }
+<INITIAL>0/[0-9a-zA-Z] {printf("Error at line %d: %s\n", lineCount, yytext);exit(1);}
 
-.   {
-    printf ("Error in line %d, unidentified argument\n", lineCount);
-}
+.   {printf("Error at line %d: %s\n", lineCount, yytext);exit(1);}
 %%
 
 
 int main(void) { 
     yylex();
-    printf("%d:%s\n", lineCount, parsed);
+    //printf("%d:%s\n", lineCount, parsed);
     return 0;
 }
 
