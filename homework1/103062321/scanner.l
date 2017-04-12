@@ -14,21 +14,22 @@
     int declare_flag = 0;
     char parsed[1024];
     int startLine = 1;
+
+    int source_on = 1;
+    int token_on = 1;
     int doubleOrFloat = 0; // double = 1, float = 2;
-    void print(FILE *fp, int lineNum, char* type){
-        fprintf(fp, "#%d %s\n", lineNum, type);
-    }
+
 %}
 
 PUNC            ":"|","|"."|"["|"]"|"("|")"|"{"|"}"|";"
 STR             \".*\"
 CHAR            \'.\'
-SPACE           [ \r\t\f\v]
+SPACE           [ \t]
 FLOAT           [0-9]+.[0-9]+
 DIGIT           [0-9]
 ID              [a-zA-Z_][a-zA-Z0-9_]*
 OP              "+"|"-"|"*"|"/"|"<"|">"|"="|"<="|">="|"=="|"%"|"++"|"--"|"!="|"&&"|"||"|"!"
-SCI             [0-9]+.[0-9]*[\E\e][\+\-]*[0-9]*
+SCI             [0-9]+.[0-9]*[a-zA-Z_][\+\-]*[0-9]*
 
 %x              COMMENT
 %x              HEADER
@@ -36,6 +37,26 @@ SCI             [0-9]+.[0-9]*[\E\e][\+\-]*[0-9]*
 
 
 %%
+
+"#pragma source on" {
+    source_on = 1;
+    strcat(parsed, yytext);
+}
+
+"#pragma source off"    {
+    source_on = 0;
+    strcat(parsed, yytext);
+}
+
+"#pragma token on"  {
+    token_on = 1;
+    strcat(parsed, yytext);
+}
+
+"#pragma token off" {
+    token_on = 0;
+    strcat(parsed, yytext);
+}
 
 {SPACE} {
     strcat (parsed, yytext);
@@ -57,26 +78,36 @@ SCI             [0-9]+.[0-9]*[\E\e][\+\-]*[0-9]*
         tmpt[j-1] = yytext[j];
     }
     strcat (parsed, yytext);
-    printf("#string:%s\n", tmpt);
+    if (token_on) {
+        printf("#string:%s\n", tmpt);
+    }
 }
 
 {CHAR}  {
     strcat (parsed, yytext);
-    printf("#char:%s\n", yytext);
+    if (token_on) {
+        printf("#char:%s\n", yytext);
+    }
 }
 
 "if"|"for"|"while"|"else"   {
     strcat (parsed, yytext);
-    printf("#key:%s\n", yytext);
+    if (token_on) {
+        printf("#key:%s\n", yytext);
+    }
 }
 
 {FLOAT} {
     strcat (parsed, yytext);   
     if (doubleOrFloat == 1) {
-        printf("#double:%s\n", yytext);
+        if (token_on) {
+            printf("#double:%s\n", yytext);
+        }
         doubleOrFloat = 0;
     } else if (doubleOrFloat == 2) {
-        printf("#float:%s\n", yytext);
+        if (token_on) {
+            printf("#float:%s\n", yytext);
+        }
         doubleOrFloat = 0;
     }
     doubleOrFloat = 0;
@@ -84,7 +115,9 @@ SCI             [0-9]+.[0-9]*[\E\e][\+\-]*[0-9]*
 
 {DIGIT}+    {
     strcat (parsed, yytext);                        
-    printf("#integer:%s\n", yytext);
+    if (token_on) {
+        printf("#integer:%s\n", yytext);
+    }
 }
 
 "//".+  {
@@ -94,12 +127,14 @@ SCI             [0-9]+.[0-9]*[\E\e][\+\-]*[0-9]*
 
 {OP}    {
     strcat (parsed, yytext);
-    printf("#op:%s\n", yytext );
+    if (token_on) {
+        printf("#op:%s\n", yytext );
+    }
 }
 
 "/*"    {
     strcat (parsed, yytext);
-    printf("#%d block comment start\n", lineCount);
+    printf("#%dcomment:/*\n", lineCount);
     BEGIN(COMMENT);
 }
 
@@ -113,36 +148,64 @@ SCI             [0-9]+.[0-9]*[\E\e][\+\-]*[0-9]*
     }
 
     strcat (parsed, yytext);
-    printf("#key:%s\n", yytext);
+    if (token_on) {
+        printf("#key:%s\n", yytext);
+    }
     declare_flag = 1;
 }
 
 return  {
     strcat (parsed, yytext);
-    printf("#key:%s\n", yytext);
+    if (token_on) {
+        printf("#key:%s\n", yytext);
+    }
 }
 
 printf  {
     strcat (parsed, yytext);
-    printf("#key:%s\n", yytext);
+    if (token_on) {
+        printf("#key:%s\n", yytext);
+    }
 }
 
 {ID}    { 
     strcat (parsed, yytext);
     strcpy(id, yytext);
-    printf ("#id:%s\n", yytext);
+    if (token_on) {
+        printf ("#id:%s\n", yytext);
+    }
     id_line = lineCount;
     //BEGIN(FUNC_OR_VAR);
 }
 
 {SCI}   {
+    int length = strlen (yytext);
+    int i;
+    for (i=0; i<length; i++) {
+        if (yytext[i] >= 'a' && yytext[i] <= 'z') {
+            if (yytext[i] != 'e') {
+                printf ("Error in line %d, found id after integer\n", lineCount);
+                exit (1);
+            }
+        }
+        if (yytext[i] >= 'A' && yytext[i] <= 'Z') {
+            if (yytext[i] != 'E') {
+                printf ("Error in line %d, found id after integer\n", lineCount);
+                exit (1);
+            }
+        }
+    }
     strcat (parsed, yytext);
-    printf("#sci:%s\n", yytext);
+    if (token_on) {
+        printf("#sci:%s\n", yytext);
+    }
 }
 
 \n  {
     //strcat (parsed, yytext);
-    printf("%d:%s\n", lineCount, parsed);
+    if (source_on) {
+        printf("%d:%s\n", lineCount, parsed);
+    }
     memset(parsed, '\0', strlen(parsed) );
     startLine = 1;
     lineCount++; 
@@ -156,16 +219,28 @@ printf  {
 
 <COMMENT>{
      "*/"      {
-        printf("#%d block comment end\n", lineCount);
-        BEGIN(INITIAL);
+        strcat (parsed, yytext);
+        if (source_on) {
+            printf("#%dcomment:*/\n", lineCount);
+        }
+        BEGIN(0);
      }
-     {SPACE}   
-     [^*\n]+   printf ("#%d COMMENT: %s\n", lineCount, yytext);
-     "*"       // eat the lone star
-     \n        lineCount++;
+     {SPACE}   //ignore
+     [^\n]+   {
+        strcat (parsed, yytext);
+        if (source_on) {
+            printf ("#%dcomment:%s\n",lineCount, yytext);
+        }
+    }
+    \n        {
+        strcat (parsed, yytext);
+        lineCount++;
+    }
 }
 
-.   {printf("Unrec: %s\n",yytext);}
+.   {
+    printf ("Error in line %d, unidentified argument\n", lineCount);
+}
 %%
 
 

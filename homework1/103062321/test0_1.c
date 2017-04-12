@@ -1,5 +1,4 @@
 //This test case is only for homework explanation
-#include <stdio.h>
 int main () {
         double a = 6.0;
         int i;
@@ -14,3 +13,7 @@ int main () {
         return 0;
 
 } 
+/*
+        hi 
+        i am test
+*/
