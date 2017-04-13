@@ -1,6 +1,6 @@
 //This test case is only for homework explanation
 int main () {
-        double a = 6.0;
+        double 0a = 6.0;
         int i;
         int b[2];
         for (i = 0; i < 2; i++) {

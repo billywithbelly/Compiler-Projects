@@ -29,11 +29,12 @@ OP              "+"|"-"|"*"|"/"|"%"|"++"|"--"|"<"|"<="|">"|">"|">="|"=="|"!="|"=
 KEY             "void"|"int"|"double"|"bool"|"char"|"null"|"for"|"while"|"do"|"if"|"else"|"switch"|"return"|"break"|"continue"|"const"|"true"|"false"|"struct"|"case"|"default"|"fopen"|"fread"|"freopen"|"remove"|"rename"|"fprintf"|"printf"|"fscanf"|"scanf"|"getc"|"getchar"|"gets"|"putc"|"putchar"|"puts"
 
 %x              COMMENT
-%x              HEADER
 %x              FUNC_OR_VAR
 
 
 %%
+
+<INITIAL>0/[0-9a-zA-Z] {fprintf(stderr, "Error at line %d: %s\n", lineCount, yytext);exit(1);}
 
 "#pragma source on" {
     source_on = 1;
@@ -66,8 +67,6 @@ KEY             "void"|"int"|"double"|"bool"|"char"|"null"|"for"|"while"|"do"|"i
         printf("#punc:%s\n", yytext);   
 }
 
-"#" BEGIN(HEADER);
-
 {STR}   {
     char tmpt[1024];
     int i;
@@ -81,9 +80,14 @@ KEY             "void"|"int"|"double"|"bool"|"char"|"null"|"for"|"while"|"do"|"i
 
 {CHAR}  {
     if (yyleng > 4) {
-        printf("error in char\n");
-        //fprintf(stderr, "Error at line %d: %s\n", lineCount, yytext); exit(1);
+        //printf("error in char\n");
+        fprintf(stderr, "Error at line %d: %s\n", lineCount, yytext); exit(1);
         exit (1);
+    }
+    if (yyleng == 4) {
+        if (yytext[1] != '\\') {
+            fprintf(stderr, "Error at line %d: %s\n", lineCount, yytext); exit(1);
+        }
     }
 
     strcat (parsed, yytext);
@@ -141,8 +145,8 @@ KEY             "void"|"int"|"double"|"bool"|"char"|"null"|"for"|"while"|"do"|"i
 
 {DIGIT}+    {
     if (yytext[0] == '0' && yyleng != 1) {
-        printf("Error at line %d: 0\n", lineCount);
-        //fprintf(stderr, "Error at line %d: %s\n", lineCount, yytext); exit(1);
+        //printf("Error at line %d: 0\n", lineCount);
+        fprintf(stderr, "Error at line %d: 0\n", lineCount); exit(1);
         exit(1);
     }
     strcat (parsed, yytext);                        
@@ -215,11 +219,6 @@ KEY             "void"|"int"|"double"|"bool"|"char"|"null"|"for"|"while"|"do"|"i
     lineCount++; 
 } 
 
-<HEADER>{
-    ">" BEGIN(0);
-    \n  lineCount++;BEGIN(0);
-    .+   {printf("%d:header:%s\n", lineCount, yytext);}
-}
 
 <COMMENT>{
      "*/"      {
@@ -237,9 +236,8 @@ KEY             "void"|"int"|"double"|"bool"|"char"|"null"|"for"|"while"|"do"|"i
         strcat (parsed, yytext);
     }
 }
-<INITIAL>0/[0-9a-zA-Z] {printf("Error at line %d: %s\n", lineCount, yytext);exit(1);}
 
-.   {printf("Error at line %d: %s\n", lineCount, yytext);exit(1);}
+.   {fprintf(stderr, "Error at line %d: %s\n", lineCount, yytext);exit(1);}
 %%
 
 

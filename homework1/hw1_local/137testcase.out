@@ -1,0 +1,293 @@
+1://adfadf
+2:#pragma source on
+6:#pragma source on
+7:#pragma token off
+8:#pragma token on
+9:/* let's
+10:test something
+11:special */
+12:
+13://go
+#key:struct
+#punc:{
+14:struct {
+#key:int
+#id:go
+#punc:;
+15:	int go;
+16:	
+#punc:}
+#id:ff
+#punc:;
+17:}ff;
+#key:struct
+#punc:{
+18:struct {
+#key:struct
+#id:ff
+#op:*
+#id:next
+#punc:;
+19:	struct ff *next;
+#punc:}
+#id:FF
+#punc:;
+20:}FF;
+#key:int
+#id:main
+#punc:(
+#key:void
+#punc:)
+21:int main(void)
+#punc:{
+22:{
+#key:int
+#id:a
+#op:=
+#integer:20
+#punc:;
+23:	int a=20;
+#key:double
+#id:first
+#op:=
+#double:3.
+#punc:;
+24:	double first = 3.;
+#key:double
+#id:second
+#op:=
+#double:.4
+#punc:;
+25:	double second = .4;
+#key:double
+#id:third
+#op:=
+#id:first
+26:	double third = first/*hahahahaha
+27:	so cool
+#op:+
+#id:second
+#op:+
+#sci:2.3e-1
+#op:+
+#id:a
+#op:++
+#punc:;
+28:	*/+second/*GGGGGGG*/+2.3e-1+a++;
+#key:double
+#id:i
+#punc:,
+#id:j
+#punc:,
+#id:k
+#punc:;
+29:	double i,j,k;
+#id:i
+#op:=
+#sci:.3e0
+#punc:;
+30:	i = .3e0;
+#id:j
+#op:=
+#sci:2.e00
+#punc:;
+31:	j = 2.e00;
+#id:k
+#op:=
+#sci:00e000
+#punc:;
+32:	k = 00e000;
+#key:double
+#id:sum
+#op:=
+#id:i
+#op:*
+#id:j
+#op:-
+#id:k
+#op:+
+#punc:(
+#id:k
+#op:/
+#id:i
+#punc:)
+#punc:;
+33:	double sum = i*j-k+(k/i);
+#key:while
+#punc:(
+#punc:(
+#op:!
+#punc:(
+#id:sum
+#op:>=
+#integer:1
+#punc:)
+#punc:)
+#op:||
+#punc:(
+#id:sum
+#op:==
+#integer:8787
+#punc:)
+#punc:)
+34:	while((!(sum>=1))||(sum==8787))
+#punc:{
+35:	{
+#id:sum
+#op:++
+#punc:;
+36:		sum++;
+#punc:}
+37:	}
+#key:bool
+#id:g
+#punc:;
+38:	bool g;
+#id:g
+#op:=
+#key:true
+#punc:;
+39:	g = true;
+#key:if
+#punc:(
+#id:g
+#punc:)
+40:	if(g)
+#punc:{
+41:	{
+#key:switch
+#punc:(
+#id:a
+#punc:)
+42:		switch(a)
+#punc:{
+43:		{
+#key:case
+#integer:1
+#punc::
+44:			case 1:
+#key:break
+#punc:;
+45:				break;
+#key:case
+#integer:3
+#punc::
+46:			case 3:
+#key:case
+#integer:5
+#punc::
+47:			case 5:
+#key:break
+#punc:;
+48:				break;
+#key:case
+#integer:20
+#punc::
+49:			case 20:
+#key:printf
+#punc:(
+#string:!!!!!\n
+#punc:)
+#punc:;
+50:				printf("!!!!!\n");
+#key:break
+#punc:;
+51:				break;
+#key:case
+#integer:21
+#punc::
+52:			case 21:
+#key:printf
+#punc:(
+#string:cool\n
+#punc:)
+#punc:;
+53:				printf("cool\n");
+#key:default
+#punc::
+54:			default:
+#key:printf
+#punc:(
+#string:-----save-----\n
+#punc:)
+#punc:;
+55:				printf("-----save-----\n");
+#key:break
+#punc:;
+56:				break;
+#punc:}
+57:		}
+#punc:}
+58:	}
+#id:ff
+#punc:.
+#id:go
+#op:=
+#integer:3
+#punc:;
+59:	ff.go = 3;
+#key:char
+#op:*
+#id:s
+#punc:;
+60:	char *s;
+#key:char
+#id:c
+#punc:;
+61:	char c;
+#id:c
+#op:=
+#char:'\t'
+#punc:;
+62:	c = '\t';
+#id:c
+#op:=
+#char:'\n'
+#punc:;
+63:	c = '\n';
+#id:c
+#op:=
+#char:'G'
+#punc:;
+64:	c = 'G';
+#id:s
+#op:=
+#string:
+#punc:;
+65:	s = "";
+#id:s
+#op:=
+#string:ggggggg\n
+#punc:;
+66:	s = "ggggggg\n";
+#key:printf
+#punc:(
+#string:%c\n
+#punc:,
+#id:c
+#punc:)
+#punc:;
+67:	printf("%c\n",c);
+#key:printf
+#punc:(
+#string:%s\n
+#punc:,
+#id:s
+#punc:)
+#punc:;
+68:	printf("%s\n",s);
+#key:printf
+#punc:(
+#string:%lf\n
+#punc:,
+#id:third
+#punc:)
+#punc:;
+69:	printf("%lf\n",third);
+70:
+#key:return
+#integer:0
+#punc:;
+71:	return 0;
+#punc:}
+72:}
