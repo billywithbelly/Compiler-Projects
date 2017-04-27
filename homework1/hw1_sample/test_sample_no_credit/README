@@ -1,5 +1,0 @@
-How to check the output format?
-
-cd test_sample_no_credit
-./your_scnner < test0_1.c > your_output.out
-vimdiff your_output.out test_answer_student/test0_1.out

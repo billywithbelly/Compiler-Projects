@@ -1,3 +1,4 @@
+ccflags-y := -std=gnu99
 scanner: scanner.l
 	flex scanner.l
 	gcc lex.yy.c -o scanner

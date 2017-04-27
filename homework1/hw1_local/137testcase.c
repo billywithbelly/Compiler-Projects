@@ -61,7 +61,7 @@ int main(void)
 	char c;
 	c = '\t';
 	c = '\n';
-	c = 'GG';
+	c = 'G';
 	s = "";
 	s = "ggggggg\n";
 	printf("%c\n",c);

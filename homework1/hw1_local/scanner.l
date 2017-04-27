@@ -9,8 +9,6 @@
     int lineCount=1; 
     int charCount=0;
     char id[256];
-    int id_line;
-    int declare_flag = 0;
     char parsed[1024];
 
     int source_on = 1;
@@ -26,15 +24,15 @@ SPACE           [ \r\t\f\v]
 DIGIT           [0-9]
 ID              [a-zA-Z_][a-zA-Z0-9_]*
 OP              "+"|"-"|"*"|"/"|"%"|"++"|"--"|"<"|"<="|">"|">"|">="|"=="|"!="|"="|"&&"|"||"|"!"|"*"|"&"
-KEY             "void"|"int"|"double"|"bool"|"char"|"null"|"for"|"while"|"do"|"if"|"else"|"switch"|"return"|"break"|"continue"|"const"|"true"|"false"|"struct"|"case"|"default"|"fopen"|"fread"|"freopen"|"remove"|"rename"|"fprintf"|"printf"|"fscanf"|"scanf"|"getc"|"getchar"|"gets"|"putc"|"putchar"|"puts"
+KEY             "void"|"int"|"double"|"bool"|"char"|"null"|"for"|"while"|"do"|"if"|"else"|"switch"|"return"|"break"|"continue"|"const"|"true"|"false"|"struct"|"case"|"default"|"fclose"|"clearerr"|"feof"|"ferror"|"fflush"|"fgetpos"|"fopen"|"fread"|"freopen"|"fseek"|"fsetpos"|"ftell"|"fwrite"|"remove"|"rename"|"rewind"|"setbuf"|"tmpfile"|"tmpnam"|"fprintf"|"printf"|"sprintf"|"vfprintf"|"vprintf"|"vsprintf"|"fscanf"|"scanf"|"sscanf"|"fgetc"|"fgets"|"fputc"|"fputs"|"getc"|"getchar"|"gets"|"putc"|"putchar"|"puts"|"ungetc"|"perror"|"unsigned"
 
 %x              COMMENT
-%x              FUNC_OR_VAR
 
 
 %%
 
 <INITIAL>0/[0-9a-zA-Z] {fprintf(stderr, "Error at line %d: %s\n", lineCount, yytext);exit(1);}
+<INITIAL>[0-9]+/[a-zA-Z] {fprintf(stderr, "Error at line %d: %s\n", lineCount, yytext);exit(1);}
 
 "#pragma source on" {
     source_on = 1;
@@ -97,9 +95,9 @@ KEY             "void"|"int"|"double"|"bool"|"char"|"null"|"for"|"while"|"do"|"i
 }
 
 {KEY}   {
-    if (yytext[0] == 'd') {
+    if (strcmp(yytext, "double") == 0) {
         doubleOrFloat = 1;
-    } else if (yytext[0] == 'f') {
+    } else if (strcmp (yytext, "float") == 0) {
         doubleOrFloat = 2;
     } else {
         doubleOrFloat = 0;
@@ -200,8 +198,6 @@ KEY             "void"|"int"|"double"|"bool"|"char"|"null"|"for"|"while"|"do"|"i
     if (token_on) {
         printf ("#id:%s\n", yytext);
     }
-    id_line = lineCount;
-    //BEGIN(FUNC_OR_VAR);
 }
 
 (([0-9]+)|([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+))[e|E][+-]?[0-9]+/[^\.0-9a-zA-Z_] {
