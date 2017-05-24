@@ -84,7 +84,6 @@ void test_if()
 void test_while()
 {
 	while(EMT<=486){EMT=EMT+1;}
-	do{}while(EMT==486);
 	while(7878){}
 	while(!gogogo){}
 	while (1) printf("hi");

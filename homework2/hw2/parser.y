@@ -41,12 +41,26 @@ program: /* empty */
 	|statement program
 	;
 
+declaration: 
+	TYPE identifiers
+	|KEY_CONST TYPE const_identifiers
+	|function
+	;
+
 statement:
 	if_else
 	|for
 	|while
 	|switch
 	;
+
+function:  
+	TYPE ID '(' ')'
+	|TYPE_VOID ID '(' ')'
+	|TYPE ID '(' parameters ')'
+	|TYPE_VOID ID '(' parameters ')'
+	;
+
 
 if_else: 
 	KEY_IF '(' expression ')' '{' inner_statement '}' else_if
@@ -72,12 +86,11 @@ forExpression:
 
 while: 
 	KEY_WHILE '(' expression ')' '{' inner_statement '}'
-	|KEY_DO '{' inner_statement '}' KEY_WHILE '(' expression ')' ';'
 	|KEY_WHILE '(' expression ')' singleLineStatement
 	;
 
 switch: 
-	KEY_SWITCH '(' ID ')' '{' cases defaultCase '}'
+	KEY_SWITCH '(' ID ')' '{' cases defaultCase '}' // with and without default
 	|KEY_SWITCH '(' ID ')' '{' cases '}'
 	;
 
@@ -88,14 +101,6 @@ cases:
 
 defaultCase: 
 	KEY_DEFAULT ':' inner_statement
-	;
-
-constant:
-	CONSTANT
-	|INTEGER
-	|DOUBLE
-	|SCI
-	|CHAR
 	;
 
 inner_statement:  
@@ -133,24 +138,11 @@ index:
 	|'[' expression ']' index
 	;
 
-declaration: 
-	TYPE identifiers
-	|KEY_CONST TYPE const_identifiers
-	|function
-	;
-
-function:  
-	TYPE ID '(' ')'
-	|TYPE_VOID ID '(' ')'
-	|TYPE ID '(' parameters ')'
-	|TYPE_VOID ID '(' parameters ')'
-	;
-
 parameters:  
-	TYPE ID index ',' parameters
-	| TYPE ID ',' parameters
-	| TYPE ID index
-	| TYPE ID
+	TYPE ID index
+	|TYPE ID
+	|TYPE ID index ',' parameters
+	|TYPE ID ',' parameters
 	;
 
 identifiers: 
@@ -169,6 +161,14 @@ identifier:
 const_identifiers:  
 	ID '=' expression
 	|ID '=' expression ',' const_identifiers
+	;
+
+constant:
+	CONSTANT
+	|INTEGER
+	|DOUBLE
+	|SCI
+	|CHAR
 	;
 
 assignment:  
