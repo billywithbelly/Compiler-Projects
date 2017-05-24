@@ -6,6 +6,8 @@
 %{
     #include <stdio.h>
     #include <string.h>
+    #include <stdbool.h>
+    #include "y.tab.h"
     int lineCount=1; 
     int charCount=0;
     char id[256];
@@ -27,7 +29,6 @@ OP              "+"|"-"|"*"|"/"|"%"|"++"|"--"|"<"|"<="|">"|">"|">="|"=="|"!="|"=
 KEY             "void"|"int"|"double"|"bool"|"char"|"null"|"for"|"while"|"do"|"if"|"else"|"switch"|"return"|"break"|"continue"|"const"|"true"|"false"|"struct"|"case"|"default"|"fclose"|"clearerr"|"feof"|"ferror"|"fflush"|"fgetpos"|"fopen"|"fread"|"freopen"|"fseek"|"fsetpos"|"ftell"|"fwrite"|"remove"|"rename"|"rewind"|"setbuf"|"tmpfile"|"tmpnam"|"fprintf"|"printf"|"sprintf"|"vfprintf"|"vprintf"|"vsprintf"|"fscanf"|"scanf"|"sscanf"|"fgetc"|"fgets"|"fputc"|"fputs"|"getc"|"getchar"|"gets"|"putc"|"putchar"|"puts"|"ungetc"|"perror"|"unsigned"
 
 %x              COMMENT
-
 
 %%
 
@@ -62,7 +63,8 @@ KEY             "void"|"int"|"double"|"bool"|"char"|"null"|"for"|"while"|"do"|"i
 {PUNC}  {
     strcat (parsed, yytext);   
     if (token_on)
-        printf("#punc:%s\n", yytext);   
+        printf("#punc:%s\n", yytext); 
+    return yytext[0];  
 }
 
 {STR}   {
@@ -74,6 +76,7 @@ KEY             "void"|"int"|"double"|"bool"|"char"|"null"|"for"|"while"|"do"|"i
     if(token_on)
         printf("#string:%s\n", tmpt);
     strcat (parsed, yytext);
+    return STRING;
 }
 
 {CHAR}  {
@@ -92,6 +95,7 @@ KEY             "void"|"int"|"double"|"bool"|"char"|"null"|"for"|"while"|"do"|"i
     if (token_on) {
         printf("#char:%s\n", yytext);
     }
+    return CHAR;
 }
 
 {KEY}   {
@@ -107,6 +111,58 @@ KEY             "void"|"int"|"double"|"bool"|"char"|"null"|"for"|"while"|"do"|"i
     if (token_on) {
         printf("#key:%s\n", yytext);
     }
+
+    if (!strcmp(yytext, "for")){
+        return KEY_FOR;
+    } else if (strcmp(yytext, "while") == 0) {
+        return KEY_WHILE;
+    } else if (strcmp(yytext, "do") == 0) {
+        return KEY_DO;
+    } else if (strcmp(yytext, "if") == 0) {
+        return KEY_IF;
+    } else if (strcmp(yytext, "else") == 0) {
+        return KEY_ELSE;
+    } else if (strcmp(yytext, "switch") == 0) {
+        return KEY_SWITCH;
+    } else if (strcmp(yytext, "return") == 0) {
+        return KEY_RETURN;
+    } else if (strcmp(yytext, "break") == 0) {
+        return KEY_BREAK;
+    } else if (strcmp(yytext, "continue") == 0) {
+        return KEY_CONTINUE;
+    } else if (strcmp(yytext, "struct") == 0) {
+        return KEY_STRUCT;
+    } else if (strcmp(yytext, "case") == 0) {
+        return KEY_CASE;
+    } else if (strcmp(yytext, "default") == 0) {
+        return KEY_DEFAULT;
+    } else if (strcmp(yytext, "null") == 0) {
+        return CONSTANT;
+    } else if (strcmp(yytext, "true") == 0) {
+        return CONSTANT;
+    } else if (strcmp(yytext, "false") == 0) {
+        return CONSTANT;
+    } else if(strcmp(yytext, "int") == 0) {
+        return TYPE;
+    }
+    else if(strcmp(yytext, "double") == 0) {
+        doubleOrFloat = 1;
+        return TYPE;
+    }
+    else if(strcmp(yytext, "bool") == 0) {
+        return TYPE;
+    }
+    else if(strcmp(yytext, "char") == 0) {
+        return TYPE;
+    }
+    else if(strcmp(yytext, "const") == 0) {
+        return KEY_CONST;
+    }
+    else if(strcmp(yytext, "void") == 0) {
+        return TYPE_VOID;
+    }
+    else
+        return ID;
 }
 
 {DIGIT}*"."{DIGIT}+ {
@@ -116,13 +172,17 @@ KEY             "void"|"int"|"double"|"bool"|"char"|"null"|"for"|"while"|"do"|"i
             printf("#double:%s\n", yytext);
         }
         doubleOrFloat = 0;
+        return DOUBLE;
     } else if (doubleOrFloat == 2) {
         if (token_on) {
             printf("#float:%s\n", yytext);
         }
         doubleOrFloat = 0;
+        //return FLOAT;
     }
+    printf("#double:%s\n", yytext);
     doubleOrFloat = 0;
+    return DOUBLE;
 }
 
 {DIGIT}+"."{DIGIT}* {
@@ -132,13 +192,17 @@ KEY             "void"|"int"|"double"|"bool"|"char"|"null"|"for"|"while"|"do"|"i
             printf("#double:%s\n", yytext);
         }
         doubleOrFloat = 0;
+        return DOUBLE;
     } else if (doubleOrFloat == 2) {
         if (token_on) {
             printf("#float:%s\n", yytext);
         }
         doubleOrFloat = 0;
+        //return FLOAT;
     }
+    printf("#double:%s\n", yytext);
     doubleOrFloat = 0;
+    return DOUBLE;
 }
 
 {DIGIT}+    {
@@ -151,6 +215,7 @@ KEY             "void"|"int"|"double"|"bool"|"char"|"null"|"for"|"while"|"do"|"i
     if (token_on) {
         printf("#integer:%s\n", yytext);
     }
+    return INTEGER;
 }
 
 "//".+  {
@@ -163,6 +228,28 @@ KEY             "void"|"int"|"double"|"bool"|"char"|"null"|"for"|"while"|"do"|"i
     if (token_on) {
         printf("#op:%s\n", yytext );
     }
+    if ( strcmp(yytext, "++") == 0)
+        return OPER_PLUS_PLUS;
+    else if ( strcmp(yytext, "--") == 0)
+        return OPER_MINUS_MINUS;
+    else if ( strcmp(yytext, "<") == 0)
+        return OPER_CMP;
+    else if ( strcmp(yytext, "<=") == 0)
+        return OPER_CMP;
+    else if ( strcmp(yytext, ">") == 0)
+        return OPER_CMP;
+    else if ( strcmp(yytext, ">=") == 0)
+        return OPER_CMP;
+    else if ( strcmp(yytext, "==") == 0)
+        return OPER_CMP;
+    else if ( strcmp(yytext, "!=") == 0)
+        return OPER_CMP;
+    else if ( strcmp(yytext, "&&") == 0)
+        return OPER_AND;
+    else if ( strcmp(yytext, "||") == 0)
+        return OPER_OR;
+    else
+        return yytext[0];
 }
 
 "/*"    {
@@ -198,12 +285,14 @@ KEY             "void"|"int"|"double"|"bool"|"char"|"null"|"for"|"while"|"do"|"i
     if (token_on) {
         printf ("#id:%s\n", yytext);
     }
+    return ID;
 }
 
 (([0-9]+)|([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+))[e|E][+-]?[0-9]+/[^\.0-9a-zA-Z_] {
     strcat (parsed, yytext);
     if(token_on)
         printf("#sci:%s\n", yytext);
+    return SCI;
 }
 
 \n  {
@@ -213,6 +302,7 @@ KEY             "void"|"int"|"double"|"bool"|"char"|"null"|"for"|"while"|"do"|"i
     }
     memset(parsed, '\0', strlen(parsed) );
     lineCount++; 
+    //return ENDLINE;
 } 
 
 
@@ -235,13 +325,6 @@ KEY             "void"|"int"|"double"|"bool"|"char"|"null"|"for"|"while"|"do"|"i
 
 .   {fprintf(stderr, "Error at line %d: %s\n", lineCount, yytext);exit(1);}
 %%
-
-
-int main(void) { 
-    yylex();
-    //printf("%d:%s\n", lineCount, parsed);
-    return 0;
-}
 
 int yywrap(){
     return 1;
