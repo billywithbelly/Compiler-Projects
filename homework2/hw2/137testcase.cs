@@ -3,7 +3,7 @@ int a;
 int b,c;
 //double d=2.2,e=3.34;	// modifier key
 int a[2];
-int b[3][2];
+int a[1]=5;
 int c[2],d[3];
 int a[2]={3,2,3};
 int b[3][2]={2};
@@ -64,7 +64,7 @@ int test_for()
 	for(8&&3;3<12;9+1){
 		for(;;){}
 	}
-//	for(i=0;;) { a=2; } int EMT=9487; //No strict order	
+	//for(i=0;;) { a=2; } int EMT=9487; //No strict order	
 }
 
 void test_if()

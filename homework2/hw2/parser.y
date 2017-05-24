@@ -93,7 +93,7 @@ constant:
 inner_statement:  
 	declarationInFunctions implementingFunction
 	;
-	
+
 singleLineStatement:
 	assignment ';'
 	;
@@ -157,14 +157,14 @@ function:
 	;
 
 parameters:  
-	parameters_over1
+	parameter
 	|
 	;
 
-parameters_over1: 
-	TYPE ID arr_parenthesis ',' parameters_over1
-	| TYPE ID ',' parameters_over1
-	| TYPE ID arr_parenthesis
+parameter: 
+	TYPE ID index ',' parameter
+	| TYPE ID ',' parameter
+	| TYPE ID index
 	| TYPE ID
 	;
 
@@ -176,15 +176,11 @@ identifiers:
 identifier:	
 	ID
 	|ID '=' expression
-	|ID arr_parenthesis
-	|ID arr_parenthesis '=' '{' expressions '}'
-	|ID arr_parenthesis '=' '{' '}'
+	|ID index
+	|ID index '=' '{' expressions '}'
+	|ID index '=' '{' '}'
 	;
 
-arr_parenthesis:  
-	'[' INTEGER ']'
-	|'[' INTEGER ']'  arr_parenthesis
-	;
 
 const_identifiers:  
 	const_identifier
@@ -219,11 +215,11 @@ expression:
 	|ID
 	|STRING
 	|CONSTANT
+	|ID index
 	|'-' expression // < 0
 	|'(' expression ')'
 	|ID '(' expressions ')'
 	|ID '(' ')'
-	|ID '[' expression ']'
 	;
 
 %%
@@ -235,6 +231,7 @@ void yyerror(char *msg){
 	fprintf (stderr, "*** syntax error\n");
 	exit(-1);
 }
+
 int main(void){
 	yyparse();
 	if (functionDeclarationFlag == 1) {
