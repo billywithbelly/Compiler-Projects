@@ -3,7 +3,7 @@ int a;
 int b,c;
 //double d=2.2,e=3.34;	// modifier key
 int a[2];
-int a[1]=5;
+a[1]=5;
 int c[2],d[3];
 int a[2]={3,2,3};
 int b[3][2]={2};

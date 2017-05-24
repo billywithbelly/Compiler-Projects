@@ -6,6 +6,7 @@
 	int yylex(void);
 	int functionDeclarationFlag = 0;
 	int syntaxError = 0;
+	int strictOrder = 0;
 	extern int lineCount;
 	extern char parsed[1024];
 	extern char* yytext;
@@ -27,8 +28,15 @@
 %%
 
 program: /* empty */
-	|declaration ';' program 
-	|assignment ';' program 
+	|declaration {if (strictOrder == 1) {
+					fprintf (stderr, "*** Error at line %d: %s\n", lineCount, parsed);
+					fprintf (stderr, "\n");
+					fprintf (stderr, "Unmatched token:%s\n", yytext);
+					fprintf (stderr, "*** syntax error\n");
+					exit(-1);
+				}
+			}';' program 
+	|assignment {strictOrder = 0;} ';' program 
 	|function '{' inner_statement '}' {functionDeclarationFlag = 1;} program 
 	|statement program
 	;
@@ -91,25 +99,17 @@ constant:
 	;
 
 inner_statement:  
-	declarationInFunctions implementingFunction
+	localDeclaration
+	|localDeclaration functionImplementation
 	;
 
 singleLineStatement:
 	assignment ';'
 	;
 
-declarationInFunctions:  
-	localDeclaration
-	|
-	;
-
 localDeclaration:  
-	declareLocally ';'
+	declareLocally
 	|declareLocally ';' localDeclaration
-	;
-
-implementingFunction:  
-	functionImplementation
 	|
 	;
 
@@ -123,21 +123,14 @@ functionCode:
 	|statement
 	;
 
-assignment:  
-	ID '=' expression 
-	|ID index '=' expression
-	|ID '(' expressions  ')'
-	|ID '(' ')'
-	|KEY_BREAK
-	|KEY_CONTINUE
-	|KEY_RETURN expression
-	|ID OPER_PLUS_PLUS
-	|ID OPER_MINUS_MINUS
+declareLocally: 
+	TYPE identifiers
+	|KEY_CONST TYPE const_identifiers
 	;
 
 index:  
 	'[' expression ']'
-	| '[' expression ']' index
+	|'[' expression ']' index
 	;
 
 declaration: 
@@ -146,24 +139,16 @@ declaration:
 	|function
 	;
 
-declareLocally: 
-	TYPE identifiers
-	|KEY_CONST TYPE const_identifiers
-	;
-
 function:  
-	TYPE ID '(' parameters ')'
+	TYPE ID '(' ')'
+	|TYPE_VOID ID '(' ')'
+	|TYPE ID '(' parameters ')'
 	|TYPE_VOID ID '(' parameters ')'
 	;
 
 parameters:  
-	parameter
-	|
-	;
-
-parameter: 
-	TYPE ID index ',' parameter
-	| TYPE ID ',' parameter
+	TYPE ID index ',' parameters
+	| TYPE ID ',' parameters
 	| TYPE ID index
 	| TYPE ID
 	;
@@ -181,14 +166,21 @@ identifier:
 	|ID index '=' '{' '}'
 	;
 
-
 const_identifiers:  
-	const_identifier
-	|const_identifier ',' const_identifiers
+	ID '=' expression
+	|ID '=' expression ',' const_identifiers
 	;
 
-const_identifier: 
-	ID '=' expression
+assignment:  
+	ID '=' expression 
+	|ID index '=' expression
+	|ID '(' expressions  ')'
+	|ID '(' ')'
+	|KEY_BREAK
+	|KEY_CONTINUE
+	|KEY_RETURN expression
+	|ID OPER_PLUS_PLUS
+	|ID OPER_MINUS_MINUS
 	;
 
 expressions:  
